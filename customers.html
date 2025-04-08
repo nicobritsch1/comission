@@ -15,110 +15,63 @@
   </style>
 </head>
 <body>
-<a href="index.html" style="display:inline-block;margin-bottom:1rem;padding:0.5rem 1rem;background-color:#444;color:white;text-decoration:none;border-radius:5px;">← Back to Home</a>
-<h1>Customers Settings</h1>
-<input id="custDesc" placeholder="Description">
-<input id="freight" placeholder="Freight Rate">
-<input id="commission" placeholder="Commission">
-<input id="markup" placeholder="Mark Up">
-<button onclick="addCustomer()">Add Customer</button>
-<div id="customerList"></div>
+  <a href="index.html" style="display:inline-block;margin-bottom:1rem;padding:0.5rem 1rem;background-color:#444;color:white;text-decoration:none;border-radius:5px;">← Back to Home</a>
+  <h1>Customers Settings</h1>
+  <input id="custDesc" placeholder="Description">
+  <input id="freight" placeholder="Freight Rate">
+  <input id="commission" placeholder="Commission">
+  <input id="markup" placeholder="Mark Up">
+  <button onclick="addCustomer()">Add Customer</button>
+  <div id="customerList"></div>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAnUYcg9HqogHW2WTgb9NgZ9YnSuZAHSpc",
-    authDomain: "commission-calculator-7c395.firebaseapp.com",
-    projectId: "commission-calculator-7c395",
-    storageBucket: "commission-calculator-7c395.firebasestorage.app",
-    messagingSenderId: "844875906730",
-    appId: "1:844875906730:web:5f7346abe48948c65fdad3"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.firebaseDB = db;
-  window.firebaseModules = { collection, getDocs, addDoc, deleteDoc, doc };
-</script>
-
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAnUYcg9HqogHW2WTgb9NgZ9YnSuZAHSpc",
-    authDomain: "commission-calculator-7c395.firebaseapp.com",
-    projectId: "commission-calculator-7c395",
-    storageBucket: "commission-calculator-7c395.firebasestorage.app",
-    messagingSenderId: "844875906730",
-    appId: "1:844875906730:web:5f7346abe48948c65fdad3"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const customersCol = collection(db, "customers");
-
-  async function loadCustomers() {
-    const snapshot = await getDocs(customersCol);
-    customers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    render();
-  }
-
-  let customers = [];
-  async function addCustomer() {
-    const custDesc = document.getElementById('custDesc').value;
-    const freight = document.getElementById('freight').value;
-    const commission = document.getElementById('commission').value;
-    const markup = document.getElementById('markup').value;
-    await addDoc(customersCol, { custDesc, freight, commission, markup });
-    loadCustomers();
-  }
-
-  async function deleteCustomer(index) {
-    const id = customers[index].id;
-    await deleteDoc(doc(db, "customers", id));
-    loadCustomers();
-  }
-
-  async function saveEdit(index) {
-    const inputs = document.querySelector(`.entry[data-index='${index}']`).querySelectorAll("input");
-    const updated = {
-      custDesc: inputs[0].value,
-      freight: inputs[1].value,
-      commission: inputs[2].value,
-      markup: inputs[3].value
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnUYcg9HqogHW2WTgb9NgZ9YnSuZAHSpc",
+      authDomain: "commission-calculator-7c395.firebaseapp.com",
+      projectId: "commission-calculator-7c395",
+      storageBucket: "commission-calculator-7c395.firebasestorage.app",
+      messagingSenderId: "844875906730",
+      appId: "1:844875906730:web:5f7346abe48948c65fdad3"
     };
-    const id = customers[index].id;
-    await deleteDoc(doc(db, "customers", id));
-    await addDoc(customersCol, updated);
-    loadCustomers();
-  }
 
-  function enableEdit(index) {
-    document.querySelectorAll(`.entry[data-index='${index}'] input`).forEach(i => i.disabled = false);
-    document.getElementById(`save-${index}`).style.display = 'inline';
-  }
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  function render() {
-    customers.sort((a,b)=>a.custDesc.localeCompare(b.custDesc));
-    const list = document.getElementById('customerList'); list.innerHTML = '';
-    customers.forEach((c, i) => {
-      const e = document.createElement('div'); e.className = 'entry'; e.dataset.index = i;
-      e.innerHTML = `<input value="${c.custDesc}" disabled><input value="${c.freight}" disabled><input value="${c.commission}" disabled><input value="${c.markup}" disabled>
-                     <button onclick="enableEdit(${i})">Edit</button><button id="save-${i}" onclick="saveEdit(${i})" style="display:none;">Save</button>
-                     <button onclick="deleteCustomer(${i})">Delete</button>`;
-      list.appendChild(e);
-    });
-  }
+    async function addCustomer() {
+      const custDesc   = document.getElementById("custDesc").value;
+      const freight    = document.getElementById("freight").value;
+      const commission = document.getElementById("commission").value;
+      const markup     = document.getElementById("markup").value;
+      
+      if (!custDesc || !freight || !commission || !markup) {
+        alert("Please fill in all fields.");
+        return;
+      }
+      
+      try {
+        await addDoc(collection(db, "customers"), {
+          description: custDesc,
+          freightRate: freight,
+          commission: commission,
+          markUp: markup,
+          createdAt: new Date()
+        });
+        alert("Customer added successfully!");
+        // Optionally clear input fields after saving:
+        document.getElementById("custDesc").value = "";
+        document.getElementById("freight").value = "";
+        document.getElementById("commission").value = "";
+        document.getElementById("markup").value = "";
+      } catch (error) {
+        console.error("Error adding customer:", error);
+        alert("Error saving customer. Check console for details.");
+      }
+    }
 
-  loadCustomers();
-</script>
-
+    window.addCustomer = addCustomer;
+  </script>
 </body>
 </html>
