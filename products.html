@@ -20,139 +20,94 @@
   </style>
 </head>
 <body>
-<a href="index.html" style="display:inline-block;margin-bottom:1rem;padding:0.5rem 1rem;background-color:#444;color:white;text-decoration:none;border-radius:5px;">← Back to Home</a>
-<h1>Products Settings</h1>
-<div class="flex-container">
-  <div class="product-section">
-    <input id="desc" placeholder="Description">
-    <input id="productNum" placeholder="Product Number">
-    <input id="pack" placeholder="Pack">
-    <input id="tihi" placeholder="TIHI">
-    <button onclick="addProduct()">Add Product</button>
-    <div id="productList"></div>
-  </div>
-  <div class="import-section">
-    <h3>Import / Export</h3>
-    <button onclick="downloadTemplate()">Download Import Template</button><br><br>
-    <input type="file" id="importFile" accept=".xlsx,.xls"><br>
-    <button onclick="importProducts()">Import Products</button><br><br>
-    <button onclick="exportProducts()">Export Products</button>
-    <div style="text-align: right; margin-top: 20px;">
-      <button class="delete-all" onclick="deleteAllProducts()">Delete All Products</button>
+  <a href="index.html" style="display:inline-block;margin-bottom:1rem;padding:0.5rem 1rem;background-color:#444;color:white;text-decoration:none;border-radius:5px;">← Back to Home</a>
+  <h1>Products Settings</h1>
+  <div class="flex-container">
+    <div class="product-section">
+      <input id="desc" placeholder="Description">
+      <input id="productNum" placeholder="Product Number">
+      <input id="pack" placeholder="Pack">
+      <input id="tihi" placeholder="TIHI">
+      <button onclick="addProduct()">Add Product</button>
+      <div id="productList"></div>
+    </div>
+    <div class="import-section">
+      <h3>Import / Export</h3>
+      <button onclick="downloadTemplate()">Download Import Template</button><br><br>
+      <input type="file" id="importFile" accept=".xlsx,.xls"><br>
+      <button onclick="importProducts()">Import Products</button><br><br>
+      <button onclick="exportProducts()">Export Products</button>
+      <div style="text-align: right; margin-top: 20px;">
+        <button class="delete-all" onclick="deleteAllProducts()">Delete All Products</button>
+      </div>
     </div>
   </div>
-</div>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAnUYcg9HqogHW2WTgb9NgZ9YnSuZAHSpc",
-    authDomain: "commission-calculator-7c395.firebaseapp.com",
-    projectId: "commission-calculator-7c395",
-    storageBucket: "commission-calculator-7c395.firebasestorage.app",
-    messagingSenderId: "844875906730",
-    appId: "1:844875906730:web:5f7346abe48948c65fdad3"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.firebaseDB = db;
-  window.firebaseModules = { collection, getDocs, addDoc, deleteDoc, doc };
-</script>
-
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAnUYcg9HqogHW2WTgb9NgZ9YnSuZAHSpc",
-    authDomain: "commission-calculator-7c395.firebaseapp.com",
-    projectId: "commission-calculator-7c395",
-    storageBucket: "commission-calculator-7c395.firebasestorage.app",
-    messagingSenderId: "844875906730",
-    appId: "1:844875906730:web:5f7346abe48948c65fdad3"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const productsCol = collection(db, "products");
-
-  async function loadProducts() {
-    const snapshot = await getDocs(productsCol);
-    products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    render();
-  }
-
-  let products = [];
-  async function addProduct() {
-    const desc = document.getElementById('desc').value;
-    const productNum = document.getElementById('productNum').value;
-    const pack = document.getElementById('pack').value;
-    const tihi = document.getElementById('tihi').value;
-    await addDoc(productsCol, { desc, productNum, pack, tihi });
-    loadProducts();
-  }
-
-  async function deleteProduct(index) {
-    const id = products[index].id;
-    await deleteDoc(doc(db, "products", id));
-    loadProducts();
-  }
-
-  async function saveEdit(index) {
-    const inputs = document.querySelector(`.entry[data-index='${index}']`).querySelectorAll("input");
-    const updated = {
-      desc: inputs[0].value,
-      productNum: inputs[1].value,
-      pack: inputs[2].value,
-      tihi: inputs[3].value
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnUYcg9HqogHW2WTgb9NgZ9YnSuZAHSpc",
+      authDomain: "commission-calculator-7c395.firebaseapp.com",
+      projectId: "commission-calculator-7c395",
+      storageBucket: "commission-calculator-7c395.firebasestorage.app",
+      messagingSenderId: "844875906730",
+      appId: "1:844875906730:web:5f7346abe48948c65fdad3"
     };
-    const id = products[index].id;
-    await deleteDoc(doc(db, "products", id));  // simple delete + add for now
-    await addDoc(productsCol, updated);
-    loadProducts();
-  }
 
-  function enableEdit(index) {
-    document.querySelectorAll(`.entry[data-index='${index}'] input`).forEach(i => i.disabled = false);
-    document.getElementById(`save-${index}`).style.display = 'inline';
-  }
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  function escapeHTML(text) {
-    if (!text) return "";
-    return text.replace(/&/g, "&amp;")
-               .replace(/</g, "&lt;")
-               .replace(/>/g, "&gt;")
-               .replace(/"/g, "&quot;")
-               .replace(/'/g, "&#039;");
-  }
+    async function addProduct() {
+      const desc       = document.getElementById("desc").value;
+      const productNum = document.getElementById("productNum").value;
+      const pack       = document.getElementById("pack").value;
+      const tihi       = document.getElementById("tihi").value;
+      
+      if (!desc || !productNum || !pack || !tihi) {
+        alert("Please fill in all product fields.");
+        return;
+      }
+      
+      try {
+        await addDoc(collection(db, "products"), {
+          description: desc,
+          productNumber: productNum,
+          pack: pack,
+          tihi: tihi,
+          createdAt: new Date()
+        });
+        alert("Product added successfully!");
+        // Optionally clear input fields:
+        document.getElementById("desc").value = "";
+        document.getElementById("productNum").value = "";
+        document.getElementById("pack").value = "";
+        document.getElementById("tihi").value = "";
+      } catch (error) {
+        console.error("Error adding product:", error);
+        alert("Error saving product. Check console for details.");
+      }
+    }
 
-  function render() {
-    products.sort((a, b) => a.desc.localeCompare(b.desc));
-    const list = document.getElementById('productList'); 
-    list.innerHTML = '';
-    products.forEach((p, i) => {
-      const e = document.createElement('div'); 
-      e.className = 'entry'; 
-      e.dataset.index = i;
-      e.innerHTML = `<input value="${escapeHTML(p.desc)}" disabled>
-                     <input value="${escapeHTML(p.productNum)}" disabled>
-                     <input value="${escapeHTML(p.pack)}" disabled>
-                     <input value="${escapeHTML(p.tihi)}" disabled>
-                     <button onclick="enableEdit(${i})">Edit</button>
-                     <button id="save-${i}" onclick="saveEdit(${i})" style="display:none;">Save</button>
-                     <button onclick="deleteProduct(${i})">Delete</button>`;
-      list.appendChild(e);
-    });
-  }
+    window.addProduct = addProduct;
 
-  loadProducts();
-</script>
+    // Placeholder functions for import/export features.
+    window.downloadTemplate = function() {
+      alert("Download template functionality not yet implemented.");
+    };
 
+    window.importProducts = function() {
+      alert("Import products functionality not yet implemented.");
+    };
+
+    window.exportProducts = function() {
+      alert("Export products functionality not yet implemented.");
+    };
+
+    window.deleteAllProducts = function() {
+      alert("Delete all products functionality not yet implemented.");
+    };
+  </script>
 </body>
 </html>
