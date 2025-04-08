@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Payout Recorder</title>
+  <style>
+    body { background-color: #000; color: #fff; font-family: Arial, sans-serif; padding: 2rem; }
+    select, input, button { margin: 0.5rem; padding: 0.4rem 0.7rem; border-radius: 5px; border: none; font-size: 0.9rem; }
+    button { background-color: #444; color: white; cursor: pointer; }
+    button:hover { background-color: #666; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 2rem; }
+    .month { background: #111; border-radius: 5px; padding: 0.5rem; }
+    .month-name { font-weight: bold; margin-bottom: 0.3rem; text-align: center; font-size: 0.95rem; }
+    .day-names, .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 0.7rem; text-align: center; }
+    .day { padding: 0.3rem 0; border-radius: 3px; }
+    .paid { background-color: green; }
+    .unpaid { background-color: red; }
+    .neutral { background-color: #333; }
+    .future { background-color: transparent; }
+    .history { margin-top: 3rem; }
+    .history h2 { font-size: 1rem; margin-bottom: 0.5rem; }
+    .history ul { list-style-type: none; padding: 0; font-size: 0.85rem; }
+    .history li { margin-bottom: 0.3rem; }
+  </style>
+</head>
+<body>
+<a href="index.html" style="display:inline-block;margin-bottom:1rem;padding:0.4rem 0.8rem;background-color:#444;color:white;text-decoration:none;border-radius:5px;">← Back to Home</a>
+<h1 style="font-size: 1.5rem;">Payout Recorder</h1>
+<select id="salespersonSelect"></select>
+<select id="yearSelect"></select>
+<input type="date" id="paidUpToDate">
+<button onclick="markPaid()">Pay up to date</button>
+<div id="calendarGrid" class="calendar-grid"></div>
+<div class="history">
+  <h2>Payout History</h2>
+  <ul id="payoutHistoryList"></ul>
+</div>
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAnUYcg9HqogHW2WTgb9NgZ9YnSuZAHSpc",
+    authDomain: "commission-calculator-7c395.firebaseapp.com",
+    projectId: "commission-calculator-7c395",
+    storageBucket: "commission-calculator-7c395.firebasestorage.app",
+    messagingSenderId: "844875906730",
+    appId: "1:844875906730:web:5f7346abe48948c65fdad3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const salespeopleCol = collection(db, "salespeople");
+
+  let salespeople = [];
+
+  async function loadSalespeople() {
+    const snapshot = await getDocs(salespeopleCol);
+    salespeople = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    const salespersonSelect = document.getElementById('salespersonSelect');
+    salespeople.forEach((s, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = s.name;
+      salespersonSelect.appendChild(opt);
+    });
+
+    renderCalendar();
+    renderHistory();
+  }
+
+  loadSalespeople();
+</script>
+
+</body>
+</html>
